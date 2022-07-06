@@ -21,7 +21,6 @@ import streamlit as st
 from pathlib import Path
 import os
 import sys
-
 import argparse
 
 
@@ -31,24 +30,16 @@ ROOT = FILE.parents[0]  # YOLOv5 root directory
 if str(ROOT) not in sys.path:
     sys.path.append(str(ROOT))  # add ROOT to PATH
 ROOT = Path(os.path.relpath(ROOT, Path.cwd()))  # relative
-Path_weight = ROOT / 'last.pt'
 
 
 
-def send_request(file_list,size=640):
+
+def send_request(file_list):
 
 	#upload multiple files as list of tuples
-
-
-	#pass the other form data here
-
-	model = torch.hub.load(ROOT / 'yolov5', 'custom', path=ROOT / 'last.pt', source='local',
-											device='cpu')
-
 	st.json({'detection': "Oring"})
-	results = model(file_list,size=640)
-	json_results = results_to_json(results, model)
-
+	a =st.json({'detection': "Oring"})
+	return a
 
 
 
@@ -74,43 +65,7 @@ def send_request(file_list,size=640):
 		st.json(json.loads(json_results.text))
 
 
-def results_to_json(results, model):
-	''' Converts yolo model output to json (list of list of dicts)'''
-	return [
-				[
-					{
-					"class": int(pred[5]),
-					"class_name": model[int(pred[5])],
-					"bbox": [int(x) for x in pred[:4].tolist()], #convert bbox results to int from float
-					"confidence": float(pred[4]),
-					}
-				for pred in result
-				]
-			for result in results.xyxy
-			]
 
-
-def plot_one_box(x, im, color=(128, 128, 128), label=None, line_thickness=3):
-	# Directly copied from: https://github.com/ultralytics/yolov5/blob/cd540d8625bba8a05329ede3522046ee53eb349d/utils/plots.py
-    # Plots one bounding box on image 'im' using OpenCV
-    assert im.data.contiguous, 'Image not contiguous. Apply np.ascontiguousarray(im) to plot_on_box() input image.'
-    tl = line_thickness or round(0.002 * (im.shape[0] + im.shape[1]) / 2) + 1  # line/font thickness
-    c1, c2 = (int(x[0]), int(x[1])), (int(x[2]), int(x[3]))
-    cv2.rectangle(im, c1, c2, color, thickness=tl, lineType=cv2.LINE_AA)
-    if label:
-        tf = max(tl - 1, 1)  # font thickness
-        t_size = cv2.getTextSize(label, 0, fontScale=tl / 3, thickness=tf)[0]
-        c2 = c1[0] + t_size[0], c1[1] - t_size[1] - 3
-        cv2.rectangle(im, c1, c2, color, -1, cv2.LINE_AA)  # filled
-        cv2.putText(im, label, (c1[0], c1[1] - 2), 0, tl / 3, [225, 255, 255], thickness=tf, lineType=cv2.LINE_AA)
-
-
-def base64EncodeImage(img):
-	''' Takes an input image and returns a base64 encoded string representation of that image (jpg format)'''
-	_, im_arr = cv2.imencode('.jpg', img)
-	im_b64 = base64.b64encode(im_arr.tobytes()).decode('utf-8')
-
-	return im_b64
 
 if __name__ == '__main__':
 	parser = argparse.ArgumentParser()
@@ -151,7 +106,7 @@ if __name__ == '__main__':
 	st.write("AI")
 	UploadFile = st.file_uploader("update pic")
 	with st.spinner(text='AI识别中...'):
-		st.sidebar.image(UploadFile)
+		st.image(UploadFile)
 		picture = Image.open(UploadFile)
 		picture = picture.save(f'data/images/{UploadFile.name}')
 		opt.source = f'data/images/{UploadFile.name}'
@@ -160,7 +115,7 @@ if __name__ == '__main__':
 		file_list =[opt.source]
 		st.write(file_list)
 
-		a = send_request(file_list=file_list,size=640)
+		a = send_request(file_list=file_list)
 
 			#img_str = base64.b64encode(f.read())
 			#st.write(type(img_str))
